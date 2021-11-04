@@ -1,0 +1,272 @@
+testEnvironment: &testEnvironment
+  NODE_ENV: CI
+  ASSETS_BUCKET: S3_TEST_BUCKET
+  JWT_SECRET: test
+  GITHUB_CLIENT_ID: test
+  GITHUB_CLIENT_SECRET: test
+  GOOGLE_CLIENT_ID: test
+  GOOGLE_CLIENT_SECRET: test
+  DB_CONNECTION_STRING: mongodb://localhost:27017/CYFDevDB
+  REDIS_CONNECTION: redis://127.0.0.1:6379/4
+
+version: 2
+jobs:
+  test_node_12:
+    docker:
+      - image: circleci/node:12.22.1-buster
+        environment:
+          <<: *testEnvironment
+      - image: circleci/mongo:latest
+      - image: circleci/redis:latest
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cyf-api-yarn-{{ checksum "yarn.lock" }}
+            - cyf-api-yarn-
+      - run:
+          name: Install
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          key: cyf-api-yarn-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Lint
+          command: yarn lint
+      - run:
+          name: Test
+          command: yarn test:coverage --reporters="default" --reporters="jest-junit"
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: ./reports/jest
+      - run:
+          name: Build
+          command: yarn build
+      - store_test_results:
+          path: ~/project/reports
+
+  test_node_14:
+    docker:
+      - image: circleci/node:14.16.1-buster
+        environment:
+          <<: *testEnvironment
+      - image: circleci/mongo:latest
+      - image: circleci/redis:latest
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - cyf-api-yarn-{{ checksum "yarn.lock" }}
+            - cyf-api-yarn-
+      - run:
+          name: Install
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          key: cyf-api-yarn-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Lint
+          command: yarn lint
+      - run:
+          name: Test
+          command: yarn test:coverage --reporters="default" --reporters="jest-junit"
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: ./reports/jest
+      - run:
+          name: Build
+          command: yarn build
+      - store_test_results:
+          path: ~/project/reports
+
+  test_build:
+    docker:
+      - image: circleci/python:3.8-buster
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+      - run:
+          name: Set env variables
+          command: echo 'export VERSION=$(echo $CIRCLE_SHA1 | cut -c -7)' >> $BASH_ENV
+      - run:
+          name: Docker build api
+          command: |
+            docker build -t codeyourfuture/cyf-api:$VERSION --build-arg version=$VERSION .
+
+  build:
+    docker:
+      - image: circleci/python:3.8-buster
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
+      - run:
+          name: Set env variables
+          command: echo 'export VERSION=$(echo $CIRCLE_SHA1 | cut -c -7)' >> $BASH_ENV
+      - run:
+          name: Docker build api
+          command: |
+            docker build -t $CYF_PRIVATE_REPO/cyf-api:$CIRCLE_BRANCH-$VERSION --build-arg version=$VERSION .
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Docker login to CYF Repo
+          command: $(aws ecr get-login --no-include-email)
+      - run:
+          name: Docker push containers
+          command: |
+            docker push $CYF_PRIVATE_REPO/cyf-api
+
+  deploy_staging:
+    docker:
+      - image: circleci/python:3.8-buster
+    working_directory: ~/repo
+    steps:
+      - setup_remote_docker:
+          version: 19.03.13
+      - run:
+          name: Set env variables
+          command: echo 'export VERSION=$(echo $CIRCLE_SHA1 | cut -c -7)' >> $BASH_ENV
+      - run:
+          name: Get runner public IP
+          command: echo 'export PUBLIC_IP=$(wget -qO- http://checkip.amazonaws.com)' >> $BASH_ENV
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Whitelist runner public IP
+          command: |
+                  aws ec2 authorize-security-group-ingress \
+                  --region ${AWS_REGION} \
+                  --group-id ${AWS_K8S_MASTER_SG} \
+                  --ip-permissions "[{\"IpProtocol\": \"tcp\", \"FromPort\": ${K8S_MASTER_PORT}, \"ToPort\": ${K8S_MASTER_PORT}, \"IpRanges\": [{\"CidrIp\": \"${PUBLIC_IP}/32\", \"Description\":\"${CIRCLE_PROJECT_REPONAME}-${CIRCLE_BUILD_NUM}\"  }]}]"
+      - run:
+          name: Install kubectl
+          command: |
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x kubectl
+      - run:
+          name: Install gnupg
+          command: sudo apt-get -y install gnupg1
+      - run:
+          name: Get kubeconfig
+          command: aws s3 cp s3://$SECRETS_BUCKET/kubectl/config_cyfbot_staging.gpg ./config.gpg
+      - run:
+          name: Decrypt kubeconfig and set KUBECONFIG
+          command: gpg1 --yes --passphrase="$GPG_KEY" config.gpg
+      - run:
+          name: Update k8s deployments
+          command: |
+            KUBECONFIG=$(pwd)/config ./kubectl -n staging set image deployment/cyf-dep-api cyf-api=$CYF_PRIVATE_REPO/cyf-api:staging-$VERSION
+      - run:
+          name: Remove runner IP from SG
+          command: |
+                  aws ec2 revoke-security-group-ingress \
+                    --region ${AWS_REGION} \
+                    --group-id ${AWS_K8S_MASTER_SG} \
+                    --protocol tcp \
+                    --port ${K8S_MASTER_PORT} \
+                    --cidr "${PUBLIC_IP}/32"
+
+
+  deploy_production:
+    docker:
+      - image: circleci/python:3.8-buster
+    working_directory: ~/repo
+    steps:
+      - setup_remote_docker:
+          version: 19.03.13
+      - run:
+          name: Set env variables
+          command: echo 'export VERSION=$(echo $CIRCLE_SHA1 | cut -c -7)' >> $BASH_ENV
+      - run:
+          name: Get runner public IP
+          command: echo 'export PUBLIC_IP=$(wget -qO- http://checkip.amazonaws.com)' >> $BASH_ENV
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Whitelist runner public IP
+          command: |
+                  aws ec2 authorize-security-group-ingress \
+                  --region ${AWS_REGION} \
+                  --group-id ${AWS_K8S_MASTER_SG} \
+                  --ip-permissions "[{\"IpProtocol\": \"tcp\", \"FromPort\": ${K8S_MASTER_PORT}, \"ToPort\": ${K8S_MASTER_PORT}, \"IpRanges\": [{\"CidrIp\": \"${PUBLIC_IP}/32\", \"Description\":\"${CIRCLE_PROJECT_REPONAME}-${CIRCLE_BUILD_NUM}\"  }]}]"
+      - run:
+          name: Install kubectl
+          command: |
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x kubectl
+      - run:
+          name: Install gnupg
+          command: sudo apt-get -y install gnupg1
+      - run:
+          name: Get kubeconfig
+          command: aws s3 cp s3://$SECRETS_BUCKET/kubectl/config_cyfbot.gpg ./config.gpg
+      - run:
+          name: Decrypt kubeconfig and set KUBECONFIG
+          command: gpg1 --yes --passphrase="$GPG_KEY" config.gpg
+      - run:
+          name: Update k8s deployments
+          command: |
+            KUBECONFIG=$(pwd)/config ./kubectl set image deployment/cyf-dep-api cyf-api=$CYF_PRIVATE_REPO/cyf-api:master-$VERSION
+      - run:
+          name: Remove runner IP from SG
+          command: |
+                  aws ec2 revoke-security-group-ingress \
+                    --region ${AWS_REGION} \
+                    --group-id ${AWS_K8S_MASTER_SG} \
+                    --protocol tcp \
+                    --port ${K8S_MASTER_PORT} \
+                    --cidr "${PUBLIC_IP}/32"
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - test_node_12
+      - test_node_14
+      - preview_docker:
+          type: approval
+          requires:
+            - test_node_12
+            - test_node_14
+          filters:
+            branches:
+              ignore:
+                - staging
+                - master
+      - test_build:
+          requires:
+            - preview_docker
+          filters:
+            branches:
+              ignore:
+                - staging
+                - master
+      - build:
+          context: build
+          requires:
+            - test_node_12
+            - test_node_14
+          filters:
+            branches:
+              only:
+                - staging
+                - master
+      - deploy_staging:
+          context: deployments_staging
+          requires:
+            - build
+          filters:
+            branches:
+              only: staging
+      - deploy_production:
+          context: deployments
+          requires:
+            - build
+          filters:
+            branches:
+              only: master

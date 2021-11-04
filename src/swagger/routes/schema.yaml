@@ -1,0 +1,91 @@
+components:
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: Unauthorized
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    App:
+      description: An app in the CodeYourFuture ecosystem
+      properties:
+        _id:
+          type: string
+          example: '5d1d18488fac3c001abf1f25'
+          pattern: '[0-9a-f]{24}'
+        __v:
+          type: number
+          example: 0
+        name:
+          type: string
+          example: Wonder App
+        url:
+          type: string
+          format: url
+          example: 'https://wonder-app.codeyourfuture.io'
+        token:
+          type: string
+          example: noneyet
+        creatorId:
+          type: string
+          example: nopes
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    City:
+      description: A city where CodeYourFuture operates
+      properties:
+        _id:
+          type: string
+          pattern: '[0-9a-f]{24}'
+          example: 5c40ba625da199001c70b5fb
+        name:
+          type: string
+          example: London
+        email:
+          type: string
+          example: london@codeyourfuture.io
+        phoneNumber:
+          type: string
+          example: 07285467896
+        slackChannel:
+          type: string
+          description: Slack channel name
+          example: London
+        slackChannelId:
+          type: string
+          description: Slack channel ID
+          example: GGVV45PJ7
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        __v:
+          type: integer
+          description: Data version.
+          example: 0
+        visibleIn:
+          type: array
+          items:
+            $ref: '#/components/schemas/visibleIn'
+    visibleIn:
+      type: string
+      description: Where the city should be visible
+      enum:
+        - APPLICATION_PROCESS_FORM
+        - DASHBOARD
+        - EVENT_LIST
+        - VOLUNTEER_FORM
+      example: VOLUNTEER_FORM

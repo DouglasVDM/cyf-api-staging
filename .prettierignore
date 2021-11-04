@@ -1,0 +1,9 @@
+coverage/
+dist/
+node_modules/
+reports/
+*.html
+*.json
+*.md
+*.yaml
+*.yml

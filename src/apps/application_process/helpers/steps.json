@@ -1,0 +1,38 @@
+[
+  {
+    "stepNumber": 1,
+    "stepName": "Sololearn",
+    "stepHeader": "Sololearn: HTML, CSS and JS",
+    "stepDescription": "Please read and follow the instructions below in order to complete this step. You can do these steps on your smartphone and don't need a laptop.",
+    "stepInstructions": "<ul><li>Follow the link and download the Sololearn app. Link <a href='https://sololearn.com'>https://sololearn.com</a></li><li>Make sure you are logged in anytime you work on sololearn,otherwise your progress will be lost.</li><li>Complete HTML, CSS and JavaScript Fundamentals tutorials.</li><li>Once you have completed both tutorials fully, Sololearn will generate a certificate for you. Copy the Verification URL of each certificate into a relevant field below.</li><li>Upon completion of this step, CYF can provide you with a laptop to continue with the application process.</li></ul>",
+    "stepImage": "../../images/CYF-step1.png",
+    "stepStatus": "Not submitted"
+  },
+  {
+    "stepNumber": 2,
+    "stepName": "FreeCodeCamp",
+    "stepHeader": "HTML and CSS Basics Tutorials",
+    "stepDescription": "Please read and follow the instructions below in order to complete this step. You have 10 days to complete this step.",
+    "stepInstructions": "<ul><li>Follow the link and register at FreeCodeCamp: Link <a href='https://learn.freecodecamp.org/'> https://learn.freecodecamp.org/</a></li><li> Make sure you are logged in anytime you work on FreeCodeCamp, otherwise your progress will be lost.</li> <li> Complete the following tutorials on FreeCodeCamp: Basic HTML and HTML5, Basic CSS, Applied Visual Design, Applied Accessibility, Responsive Web Design Principles, and CSS Flex box.</li> <li> Once you have completed the tutorials fully, go to your profile on FreeCodeCamp and change all your privacy settings to Public. </li> <li> At the top of the page, click on Show me my public portfolio. From the new windows that opens, copy the URL link. Paste this link in the field below and click Submit. </li></ul>",
+    "stepImage": "../../images/CYF-step2.png",
+    "stepStatus": "Not submitted"
+  },
+  {
+    "stepNumber": 3,
+    "stepName": "FreeCodeCamp",
+    "stepHeader": "Build a Tribute Page",
+    "stepDescription": "This step challenges you to build your own web page using the skills you learned in tutorials.",
+    "stepInstructions": "<ul><li> Register and complete the challenge by designing your own web page here: Link <a href='https://learn.freecodecamp.org/responsive-web-design/responsive-web-design-projects/build-a-tribute-page/'>  https://learn.freecodecamp.org/../build-a-tribute-page</a></li><li>Implement what you’ve learned so far from Step 2.</li><li>  When your web page is complete, copy and paste the link to your  page in the field below and press Submit.</li></ul>",
+    "stepImage": "../../images/CYF-step3.png",
+    "stepStatus": "Not submitted"
+  },
+  {
+    "stepNumber": 4,
+    "stepName": "FreeCodeCamp",
+    "stepHeader": "Build a Landing Page",
+    "stepDescription": "This step challenges you to build a product landing page.",
+    "stepInstructions": "<ul><li>Register and complete the challenge by designing your own web page here: Link <a href='https://learn.freecodecamp.org/responsive-web-design/responsive-web-design-projects/build-a-product-landing-page'> https://learn.freecodecamp.org/../build-a-product-landing-page</a> </li> <li>Implement everything you have learned in steps 2 and 3.</li><li>This step will be assessed so make sure to complete it to the best of your abilities.</li><li> When your web page is complete, copy and paste the link to your page in the field below and press Submit.</li></ul>",
+    "stepImage": "../../images/CYF-step4.png",
+    "stepStatus": "Not submitted"
+  }
+]

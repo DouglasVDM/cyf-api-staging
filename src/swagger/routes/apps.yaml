@@ -1,0 +1,107 @@
+tags:
+  name: Apps
+  description: |
+    Apps in the CodeYourFuture ecosystem
+
+    **Note** that these endpoints were previously used to manage apps for CORS
+    purposes, which is no longer required.
+
+/apps:
+  get:
+    tags:
+      - Apps
+    deprecated: true
+    summary: Get a list of all registered applications
+    security:
+      - token: []
+    responses:
+      200:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/App"
+      400:
+        description: Something went wrong while processing the request
+        content:
+          text/plain:
+            schema:
+              example: Could not get apps
+              type: string
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+  post:
+    tags:
+      - Apps
+    deprecated: true
+    summary: Register a new application
+    security:
+      - token: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              creatorId:
+                type: string
+              name:
+                type: string
+              token:
+                type: string
+              url:
+                type: string
+                format: url
+    responses:
+      201:
+        description: Application was successfully registered
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                app:
+                  $ref: '#/components/schemas/App'
+      400:
+        description: Something went wrong while processing the request
+        content:
+          text/plain:
+            schema:
+              example: Could not create App.
+              type: string
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+
+/apps/{appId}:
+  delete:
+    tags:
+      - Apps
+    deprecated: true
+    summary: Remove a registered application
+    security:
+      - token: []
+    parameters:
+      - in: path
+        name: appId
+        required: true
+        schema:
+          type: string
+          pattern: '[0-9a-f]{24}'
+        description: The ID of the application to remove
+    responses:
+      204:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/App'
+      400:
+        description: Something went wrong while processing the request
+        content:
+          text/plain:
+            schema:
+              example: Could not delete App.
+              type: string
+      401:
+        $ref: '#/components/responses/UnauthorizedError'

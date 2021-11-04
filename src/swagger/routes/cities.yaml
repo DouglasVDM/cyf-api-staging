@@ -1,0 +1,131 @@
+tags:
+  name: Cities
+  description: Cities where CodeYourFuture operates
+
+/cities:
+  get:
+    summary: Retrieve a list of cities.
+    tags: [Cities]
+    responses:
+      200:
+        description: A list of cities.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cities:
+                  type: array
+                  items:
+                   $ref: '#/components/schemas/City'
+      400:
+        description: Something went wrong while processing the request
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: Could not get cities
+
+/city:
+  put:
+    summary: Edit city
+    tags: [Cities]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: City ID
+                example: 607eda832ca67802a86ea907
+              city:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: London
+                  email:
+                    type: string
+                    format: email
+                    example: london@codeyourfuture.io
+                  phoneNumber:
+                    type: string
+                    example: 07285467896
+                  slackChannel:
+                    type: string
+                    example: London
+                  slackChannelId:
+                    type: string
+                    example: GGVV45PJ7
+                  visibleIn:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/visibleIn'
+    security:
+      - token: []
+    responses:
+      200:
+        description: A city object.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/City'
+      400:
+        description: Something went wrong while processing the request
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: Could not edit city
+      401:
+        $ref: '#/components/responses/UnauthorizedError'
+  post:
+    summary: Add a new city
+    tags: [Cities]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: London
+              email:
+                type: string
+                example: london@codeyourfuture.io
+              phoneNumber:
+                type: string
+                example: 07285467896
+              slackChannel:
+                type: string
+                example: London
+              slackChannelId:
+                type: string
+                example: GGVV45PJ7
+              visibleIn:
+                type: array
+                items:
+                  $ref: '#/components/schemas/visibleIn'
+    security:
+      - token: []
+    responses:
+      200:
+        description: A city object.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/City'
+      400:
+        description: Something went wrong while processing the request
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: Could not create city
+      401:
+        $ref: '#/components/responses/UnauthorizedError'

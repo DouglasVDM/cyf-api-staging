@@ -1,0 +1,23 @@
+{
+  "extends": ["@codeyourfuture/standard"],
+  "parser": "babel-eslint",
+  "env": {
+    "node": true,
+    "jest": true,
+    "es6": true
+  },
+  "rules": {
+    "arrow-parens": "off",
+    "comma-dangle": "off",
+    "curly": ["warn"],
+    "indent": "off",
+    "no-console": ["warn"],
+    "no-mixed-spaces-and-tabs": "off",
+    "no-useless-catch": "off",
+    "operator-linebreak": "off",
+    "quotes": ["warn", "single", { "avoidEscape": true }],
+    "require-atomic-updates": ["warn"],
+    "semi": "off"
+  },
+  "plugins": ["prettier"]
+}

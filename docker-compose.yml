@@ -1,0 +1,13 @@
+version: '3.3'
+services:
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - '27017:27017'
+  redis:
+    image: redis
+    command: redis-server --requirepass password
+    restart: always
+    ports:
+      - '6379:6379'

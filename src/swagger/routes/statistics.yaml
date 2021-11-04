@@ -1,0 +1,81 @@
+tags:
+  name: Statistics
+  description: Summaries of the data held by the API
+/statistics/class-status:
+  get:
+    summary: Retrieve a count of students given specific filters
+    description: |
+      Counts unarchived students in any one of the supplied cyfCityIds[] (or in any city, if not supplied)
+      and identifying by any one of the supplied genders[] (or by any gender, if not supplied)
+
+      Who have at least one step that meets all of the following criteria:
+      - Has one of the supplied stepNumbers[] (or any step number, if not supplied)
+      - Has any URL with a status in the supplied stepStatus[] ( if not supplied, this will include any student who has reached this step, and has any status including not yet submitted a URL (ie urls=[]).)
+      - Was last updated on or after the stepUpdatedFromDate (or at any time, if not supplied)
+    tags: [Statistics]
+    parameters:
+      - in: query
+        name: genders[]
+        allowReserved: true
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+            enum: [Male, Female, Other, PreferNotToSay]
+      - in: query
+        name: stepStatus[]
+        allowReserved: true
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+            enum: [Not submitted, Submitted, Approved, Rejected]
+      - in: query
+        name: cyfCityIds[]
+        allowReserved: true
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+            pattern: '[0-9a-f]{24}'
+      - in: query
+        name: stepNumbers[]
+        allowReserved: true
+        explode: true
+        schema:
+          type: array
+          items:
+            type: number
+      - in: query
+        name: stepUpdatedFromDate
+        schema:
+          type: string
+          format: date
+    responses:
+      200:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                studentsMatchingCondition:
+                  description: The number of students matching the specified conditions
+                  type: number
+      400:
+        description: Something went wrong while processing the request
+        content:
+          text/plain:
+            schema:
+              example: Could not get status
+              type: string
+      422:
+        description: Request could not be processed due to invalid parameters
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: The error in the parameters
+              example: Requested gender is not valid
